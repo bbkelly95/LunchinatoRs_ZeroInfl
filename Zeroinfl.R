@@ -3,7 +3,6 @@ library(tidyverse)
 library(skimr)
 library(pscl)
 library(boot)
-library(ggResidpanel)
 
 #load
 mydat <- read.csv("Data/zeroinfl_data.csv", header = T)
@@ -179,7 +178,6 @@ lnd.full.mod <- zeroinfl(LND_ab ~ avgT+pctcbbl+elev_m+Area_km2+med_len+BRT_100m 
                          offset = log(SegLen))
 summary(lnd.full.mod)
 
-plot(lnd.full.mod)
 
 #-----
 #extracting confidence intervals for the parameters
