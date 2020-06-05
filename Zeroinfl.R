@@ -238,7 +238,6 @@ library(emmeans)
 
 ref_grid(lnd.full.mod) #these are the mean values for all the covariates
 
-#
 skim(mydat)
 
 # Plot at quantile values
@@ -246,6 +245,11 @@ emmip(lnd.full.mod, BRT_100m~avgT, at = list(avgT = c(9.68,14.4,15.58,16.78,19.8
                                               BRT_100m = c(0,7.33,96.14), type = "response"))  +
   theme_bw()+
   theme(panel.grid = element_blank())
+#my question -- y axis on what scale? does prediction need to be exponentiated?
+#how does my offset variable play into this? Is this prediction based on a length of stream?
+
+exp(0.6)
+
 
 
 # Plot effect of temp only (other covariates at their mean)
@@ -258,6 +262,9 @@ ggplot(plot_df_temp, aes(x = avgT, y = effect)) + geom_line() +
   xlab("avwid") + ylab("Predicted effect") +
   labs(title = "Predicted effect of mean stream temp on LND Count",
        subtitle = "Other covariates held at their mean values")
+
+
+
 
 
 # Plot predicted vs observed
@@ -289,19 +296,32 @@ df_outlier <- data.frame(obs_value = mydat$LND_ab,
 outlier <- df_outlier %>%
   filter(estimate >200) #"ideal" conditions based on relationships observed with covariates
 
-cor(mydat$LND_ab, all_rg) #0.09 -- hm. nice
+#correlation including outlier
+cor(df_outlier$obs_value, df_outlier$estimate) #0.09 -- hm. nice
 
+#correlation b/w excluding outlier
+else_df <- df_outlier %>%
+  filter(estimate < 200)
 
+cor(else_df$obs_value, else_df$estimate) #0.51 
 
 #########################################################################
 lnd.df$estimate <- predict(lnd.full.mod, newdata = lnd.df)# This gives you predictions at your data points
 lnd.df$resid <- residuals(lnd.full.mod)
 
+#focus on non-outlier predictions
 ggplot(lnd.df, aes(x = avgT, y = mydat$LND_ab)) +
   geom_segment(aes(xend = avgT, yend = estimate), alpha = .2) +  # Lines to connect points
   geom_point() +  # Points of actual values
   geom_point(aes(y = estimate), shape = 1, color = "blue") +  # Points of predicted values
   theme_bw()+
   scale_y_continuous(limits = c(0,180))
+
+#including outlier prediction point
+ggplot(lnd.df, aes(x = avgT, y = mydat$LND_ab)) +
+  geom_segment(aes(xend = avgT, yend = estimate), alpha = .2) +  # Lines to connect points
+  geom_point() +  # Points of actual values
+  geom_point(aes(y = estimate), shape = 1, color = "blue") +  # Points of predicted values
+  theme_bw()
 #########################################################################
 
